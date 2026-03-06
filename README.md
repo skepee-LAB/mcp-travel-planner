@@ -92,6 +92,21 @@ Developer writes:
 | Tight coupling | Changing an API breaks the whole app |
 | No tool composability | Cannot mix-and-match data sources easily |
 
+#### The "Context Dump" Problem — Measured
+
+The web UI shows a concrete metric: **"N chars pre-loaded"**. This is the exact byte size of the JSON blob that gets pasted into the LLM prompt before the LLM has said a single word.
+
+For a 4-city trip (Paris, Rome, Athens, Istanbul) this is typically **~8,000–10,000 characters** blindly injected into the prompt, because the code fetches all 4 data points (coordinates, weather, Wikipedia extract, currency rate) for every city unconditionally:
+
+```
+4 cities × 4 API calls = 16 HTTP requests, always
+→ All 16 results serialized to JSON
+→ Entire JSON blob prepended to the prompt
+→ LLM charged tokens for ALL of it, whether it needed it or not
+```
+
+With MCP, the LLM instead calls only the tools it decides are relevant. If the user asks only about weather, only `get_weather()` is called. If one city already uses EUR, `get_currency_rate()` is skipped for that city entirely. The prompt stays small and precise.
+
 ---
 
 ### ✅ With MCP (`mcp_server.py` + `mcp_core.py`)
@@ -334,7 +349,7 @@ python mcp_client.py
 |---|---|---|
 | **Who decides what to fetch** | Developer (hardcoded) | LLM (at runtime) |
 | **Data fetched** | Everything, upfront, blindly | Only what's needed |
-| **Token efficiency** | Low — full data dump in prompt | High — only relevant data fetched |
+| **Token efficiency** | Low — full data dump in prompt (~8–10K chars for 4 cities) | High — only relevant data fetched |
 | **Reusability** | Zero — tied to one app | Full — any MCP client can connect |
 | **Tool discovery** | None — developer must know all APIs | Automatic — client asks server |
 | **Adding a new data source** | Edit every app that needs it | Add one `@mcp.tool()` to the server |
