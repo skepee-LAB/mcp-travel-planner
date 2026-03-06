@@ -1,197 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MCP Travel Journey Planner</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #0f172a;
+      background: #0b1120;
       color: #e2e8f0;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem 1rem;
+      padding: 2rem 1rem 4rem;
     }
 
-    header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
+    /* ── Header ── */
+    header { text-align: center; margin-bottom: 2rem; }
     header h1 {
-      font-size: 2rem;
-      font-weight: 700;
+      font-size: 1.9rem; font-weight: 700;
       background: linear-gradient(90deg, #38bdf8, #818cf8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-    header p {
-      color: #94a3b8;
-      margin-top: 0.4rem;
-      font-size: 0.95rem;
-    }
+    header p { color: #64748b; margin-top: 0.4rem; font-size: 0.9rem; }
 
-    .card {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 1.5rem;
-      width: 100%;
-      max-width: 820px;
-      margin-bottom: 1.5rem;
-    }
-
-    /* ── Input area ── */
-    .input-row {
-      display: flex;
-      gap: 0.75rem;
+    /* ── Input card ── */
+    .input-card {
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 14px; padding: 1.5rem;
+      max-width: 900px; margin: 0 auto 1.5rem;
     }
     textarea {
-      flex: 1;
-      background: #0f172a;
-      border: 1px solid #475569;
-      border-radius: 8px;
-      color: #e2e8f0;
-      font-size: 0.95rem;
-      padding: 0.75rem 1rem;
-      resize: vertical;
-      min-height: 90px;
-      outline: none;
-      transition: border-color 0.2s;
+      width: 100%; background: #0b1120; border: 1px solid #475569;
+      border-radius: 8px; color: #e2e8f0; font-size: 0.95rem;
+      padding: 0.75rem 1rem; resize: vertical; min-height: 80px;
+      outline: none; transition: border-color 0.2s;
     }
     textarea:focus { border-color: #38bdf8; }
 
-    button#planBtn {
-      background: linear-gradient(135deg, #38bdf8, #818cf8);
-      border: none;
-      border-radius: 8px;
-      color: #0f172a;
-      font-weight: 700;
-      font-size: 0.95rem;
-      cursor: pointer;
-      padding: 0 1.4rem;
-      white-space: nowrap;
-      transition: opacity 0.2s;
-    }
-    button#planBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-
     .presets {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 1rem;
+      display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem;
+      align-items: center;
     }
+    .preset-label { color: #475569; font-size: 0.78rem; }
     .preset-btn {
-      background: #0f172a;
-      border: 1px solid #475569;
-      border-radius: 20px;
-      color: #94a3b8;
-      font-size: 0.8rem;
-      padding: 0.3rem 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
+      background: #0b1120; border: 1px solid #334155; border-radius: 20px;
+      color: #94a3b8; font-size: 0.78rem; padding: 0.28rem 0.8rem;
+      cursor: pointer; transition: all 0.18s;
     }
     .preset-btn:hover { border-color: #38bdf8; color: #38bdf8; }
 
-    /* ── Status / spinner ── */
-    #status {
-      display: none;
-      align-items: center;
-      gap: 0.75rem;
-      color: #94a3b8;
-      font-size: 0.9rem;
-      margin-bottom: 1rem;
+    /* ── Mode toggle ── */
+    .mode-row {
+      display: flex; align-items: center; gap: 1rem;
+      margin-top: 1.1rem; flex-wrap: wrap;
+    }
+    .toggle-group {
+      display: flex; background: #0b1120; border: 1px solid #334155;
+      border-radius: 8px; overflow: hidden;
+    }
+    .toggle-group input[type=radio] { display: none; }
+    .toggle-group label {
+      padding: 0.45rem 1.1rem; font-size: 0.85rem; cursor: pointer;
+      color: #64748b; transition: all 0.2s; user-select: none;
+    }
+    .toggle-group input[type=radio]:checked + label {
+      background: #38bdf8; color: #0b1120; font-weight: 700;
+    }
+
+    .run-btn {
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      border: none; border-radius: 8px; color: #0b1120;
+      font-weight: 700; font-size: 0.95rem; cursor: pointer;
+      padding: 0.5rem 1.6rem; transition: opacity 0.2s; margin-left: auto;
+    }
+    .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Compare layout ── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) { .compare-grid { grid-template-columns: 1fr; } }
+    .compare-grid.single { grid-template-columns: 1fr; max-width: 900px; }
+
+    /* ── Panel ── */
+    .panel {
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 14px; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .panel-header {
+      padding: 0.8rem 1.2rem;
+      display: flex; align-items: center; gap: 0.6rem;
+      border-bottom: 1px solid #334155;
+      font-weight: 700; font-size: 0.9rem;
+    }
+    .panel.mcp   .panel-header { background: #0f2744; color: #38bdf8; }
+    .panel.nomcp .panel-header { background: #2a1f0e; color: #fb923c; }
+
+    .badge {
+      font-size: 0.7rem; font-weight: 600; border-radius: 6px;
+      padding: 0.2rem 0.6rem; margin-left: auto;
+    }
+    .panel.mcp   .badge { background: #0e3a5c; color: #38bdf8; }
+    .panel.nomcp .badge { background: #431a02; color: #fb923c; }
+
+    .panel-body { padding: 1.2rem; flex: 1; }
+
+    /* ── Spinner ── */
+    .spinner-row {
+      display: none; align-items: center; gap: 0.7rem;
+      color: #64748b; font-size: 0.88rem; padding: 2rem 0;
     }
     .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid #334155;
-      border-top-color: #38bdf8;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid #334155; border-top-color: #38bdf8;
+      animation: spin 0.75s linear infinite; flex-shrink: 0;
     }
+    .panel.nomcp .spinner { border-top-color: #fb923c; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Tool call log ── */
-    #toolLog { display: none; }
-    #toolLog h3 {
-      font-size: 0.85rem;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.75rem;
+    /* ── Tool log (MCP) ── */
+    .tool-section { display: none; margin-bottom: 1rem; }
+    .section-title {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: #475569; margin-bottom: 0.5rem;
     }
     .tool-item {
-      background: #0f172a;
-      border-left: 3px solid #818cf8;
-      border-radius: 6px;
-      padding: 0.6rem 0.9rem;
-      margin-bottom: 0.5rem;
-      font-size: 0.82rem;
-      animation: fadeIn 0.3s ease;
+      background: #0b1120; border-left: 3px solid #818cf8;
+      border-radius: 6px; padding: 0.5rem 0.75rem; margin-bottom: 0.4rem;
+      font-size: 0.78rem; animation: fadeUp 0.25s ease;
     }
     .tool-name { color: #818cf8; font-weight: 600; }
-    .tool-input { color: #94a3b8; margin-top: 0.2rem; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
+    .tool-args { color: #64748b; margin-top: 0.15rem; }
+
+    /* ── Fetch log (no-MCP) ── */
+    .fetch-item {
+      background: #0b1120; border-left: 3px solid #fb923c;
+      border-radius: 6px; padding: 0.5rem 0.75rem; margin-bottom: 0.4rem;
+      font-size: 0.78rem; animation: fadeUp 0.25s ease;
+    }
+    .fetch-city { color: #fb923c; font-weight: 600; }
+    .fetch-ops  { color: #64748b; margin-top: 0.15rem; }
+
+    /* ── Context dump warning ── */
+    .dump-warning {
+      background: #2a1500; border: 1px solid #7c3d0c;
+      border-radius: 8px; padding: 0.7rem 1rem; margin-bottom: 1rem;
+      font-size: 0.82rem; color: #fb923c; display: none;
+    }
+    .dump-warning strong { color: #fdba74; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
     /* ── Answer ── */
-    #answerCard { display: none; }
-    #answerCard h3 {
-      font-size: 0.85rem;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 1rem;
+    .answer-section { display: none; }
+    .answer-body {
+      line-height: 1.75; color: #cbd5e1; font-size: 0.9rem;
     }
-    #answerContent {
-      line-height: 1.75;
-      color: #cbd5e1;
+    .answer-body h1,.answer-body h2,.answer-body h3 { color:#e2e8f0; margin:1rem 0 0.35rem; }
+    .answer-body strong { color: #f1f5f9; }
+    .answer-body ul, .answer-body ol { padding-left: 1.3rem; margin: 0.4rem 0; }
+    .answer-body li { margin-bottom: 0.25rem; }
+    .answer-body p  { margin-bottom: 0.65rem; }
+    .answer-body code {
+      background: #0b1120; padding: 0.1rem 0.35rem;
+      border-radius: 4px; font-size: 0.82em; color: #38bdf8;
     }
-    #answerContent h1, #answerContent h2, #answerContent h3 {
-      color: #e2e8f0;
-      margin: 1.2rem 0 0.4rem;
-    }
-    #answerContent strong { color: #f1f5f9; }
-    #answerContent ul, #answerContent ol { padding-left: 1.4rem; margin: 0.5rem 0; }
-    #answerContent li { margin-bottom: 0.3rem; }
-    #answerContent p { margin-bottom: 0.75rem; }
-    #answerContent code {
-      background: #0f172a;
-      padding: 0.1rem 0.4rem;
-      border-radius: 4px;
-      font-size: 0.85em;
-      color: #38bdf8;
-    }
-    #answerContent hr { border-color: #334155; margin: 1rem 0; }
+    .answer-body hr { border-color: #1e293b; margin: 0.8rem 0; }
 
     /* ── Stats bar ── */
-    #statsBar {
-      display: none;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      margin-top: 1.2rem;
-      padding-top: 1rem;
-      border-top: 1px solid #334155;
-      font-size: 0.82rem;
-      color: #64748b;
+    .stats-bar {
+      display: none; gap: 1.2rem; flex-wrap: wrap;
+      margin-top: 1rem; padding-top: 0.9rem;
+      border-top: 1px solid #334155; font-size: 0.78rem; color: #475569;
     }
-    .stat span { color: #94a3b8; font-weight: 600; }
+    .stats-bar .sv { color: #94a3b8; font-weight: 700; }
+    .stats-bar .highlight { color: #f87171; }
+    .stats-bar .good      { color: #4ade80; }
+
+    /* ── Comparison summary bar ── */
+    #summary-bar {
+      display: none;
+      background: #162032; border: 1px solid #334155; border-radius: 12px;
+      padding: 1rem 1.5rem; max-width: 1400px; margin: 1.2rem auto 0;
+      gap: 2rem; flex-wrap: wrap; align-items: flex-start;
+    }
+    #summary-bar h3 {
+      font-size: 0.78rem; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 0.5rem;
+    }
+    .cmp-row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .cmp-item { font-size: 0.84rem; }
+    .cmp-item .lbl { color: #64748b; }
+    .cmp-mcp   { color: #38bdf8; font-weight: 700; }
+    .cmp-nomcp { color: #fb923c; font-weight: 700; }
+    .winner { color: #4ade80; font-size: 0.74rem; margin-left: 0.3rem; }
 
     /* ── Error ── */
-    #errorBox {
-      display: none;
-      background: #450a0a;
-      border: 1px solid #7f1d1d;
-      border-radius: 8px;
-      color: #fca5a5;
-      padding: 1rem;
-      font-size: 0.88rem;
-      width: 100%;
-      max-width: 820px;
+    .error-box {
+      display: none; background: #3b0a0a; border: 1px solid #7f1d1d;
+      border-radius: 8px; color: #fca5a5; padding: 0.8rem 1rem;
+      font-size: 0.85rem; margin-top: 0.5rem;
     }
   </style>
 </head>
@@ -199,128 +218,296 @@
 
 <header>
   <h1>✈️ MCP Travel Journey Planner</h1>
-  <p>Powered by Gemini + MCP tools (weather · places · currency)</p>
+  <p>Compare AI journey planning <strong style="color:#38bdf8">with MCP</strong> vs <strong style="color:#fb923c">without MCP</strong> — powered by Gemini</p>
 </header>
 
-<!-- Input card -->
-<div class="card">
-  <div class="input-row">
-    <textarea id="prompt" placeholder="e.g. I'm flying from London to Tokyo, stopping in Dubai. What's the weather, what should I know, and what's the currency?"></textarea>
-    <button id="planBtn" onclick="planJourney()">Plan ✈️</button>
-  </div>
+<!-- Input -->
+<div class="input-card">
+  <textarea id="prompt" placeholder="e.g. I'm planning a trip from Paris to Rome then Athens and Istanbul — weather, places, currency tips please!"></textarea>
+
   <div class="presets">
-    <span style="color:#64748b;font-size:0.8rem;align-self:center;">Try:</span>
-    <button class="preset-btn" onclick="setPrompt('Paris → Rome → Athens → Istanbul: weather, places, currency vs EUR')">Paris→Rome→Athens→Istanbul</button>
-    <button class="preset-btn" onclick="setPrompt('London to Tokyo stopping in Dubai: weather, local info, and currency tips')">London→Dubai→Tokyo</button>
-    <button class="preset-btn" onclick="setPrompt('New York to Buenos Aires via Miami: what to expect weather-wise, cultural highlights, and currency')">NYC→Miami→Buenos Aires</button>
-    <button class="preset-btn" onclick="setPrompt('Amsterdam to Bangkok via Doha: weather forecast, interesting facts, currency rates')">Amsterdam→Doha→Bangkok</button>
+    <span class="preset-label">Try:</span>
+    <button class="preset-btn" onclick="setPrompt('Paris, Rome, Athens and Istanbul — weather, place info and currency')">Paris→Rome→Athens→Istanbul</button>
+    <button class="preset-btn" onclick="setPrompt('London to Tokyo stopping in Dubai — weather, highlights, currency')">London→Dubai→Tokyo</button>
+    <button class="preset-btn" onclick="setPrompt('New York, Miami and Buenos Aires trip — weather and local tips')">NYC→Miami→Buenos Aires</button>
+    <button class="preset-btn" onclick="setPrompt('Amsterdam to Bangkok via Doha — weather, facts, currency rates')">Amsterdam→Doha→Bangkok</button>
+  </div>
+
+  <div class="mode-row">
+    <span style="font-size:0.85rem;color:#64748b;">Mode:</span>
+    <div class="toggle-group">
+      <input type="radio" name="mode" id="r-mcp"   value="mcp"    checked>
+      <label for="r-mcp">🔧 MCP</label>
+      <input type="radio" name="mode" id="r-nomcp" value="no-mcp">
+      <label for="r-nomcp">⚠️ Without MCP</label>
+      <input type="radio" name="mode" id="r-both"  value="both">
+      <label for="r-both">⚡ Compare both</label>
+    </div>
+    <button class="run-btn" id="runBtn" onclick="run()">Plan ✈️</button>
   </div>
 </div>
 
-<!-- Status -->
-<div id="status">
-  <div class="spinner"></div>
-  <span id="statusText">Connecting to MCP server...</span>
+<!-- Results grid -->
+<div class="compare-grid single" id="grid">
+
+  <!-- MCP Panel -->
+  <div class="panel mcp" id="panel-mcp" style="display:none">
+    <div class="panel-header">
+      🔧 With MCP
+      <span class="badge">LLM chooses what to fetch</span>
+    </div>
+    <div class="panel-body">
+      <div class="spinner-row" id="spin-mcp">
+        <div class="spinner"></div>
+        <span>MCP server running · Gemini calling tools…</span>
+      </div>
+      <div class="error-box" id="err-mcp"></div>
+
+      <div class="tool-section" id="tools-mcp">
+        <div class="section-title">Tool calls made by Gemini</div>
+        <div id="tool-list"></div>
+      </div>
+
+      <div class="answer-section" id="ans-mcp">
+        <div class="section-title">Travel Plan</div>
+        <div class="answer-body" id="ans-mcp-body"></div>
+      </div>
+
+      <div class="stats-bar" id="stats-mcp">
+        <div><span class="lbl" style="color:#475569;">Tool calls: </span><span class="sv good" id="s-mcp-tools">–</span></div>
+        <div><span class="lbl" style="color:#475569;">Input tokens: </span><span class="sv good" id="s-mcp-in">–</span></div>
+        <div><span class="lbl" style="color:#475569;">Output tokens: </span><span class="sv" id="s-mcp-out">–</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No-MCP Panel -->
+  <div class="panel nomcp" id="panel-nomcp" style="display:none">
+    <div class="panel-header">
+      ⚠️ Without MCP
+      <span class="badge">All data pre-fetched blindly</span>
+    </div>
+    <div class="panel-body">
+      <div class="spinner-row" id="spin-nomcp">
+        <div class="spinner"></div>
+        <span>Fetching all data manually · building giant prompt…</span>
+      </div>
+      <div class="error-box" id="err-nomcp"></div>
+
+      <div class="dump-warning" id="dump-warn">
+        <strong>⚠️ Context dump:</strong> <span id="dump-chars">–</span> characters of raw JSON blindly stuffed into the prompt — regardless of what the LLM actually needed.
+      </div>
+
+      <div class="tool-section" id="fetch-section">
+        <div class="section-title">Data pre-fetched for every city (hardcoded, not on-demand)</div>
+        <div id="fetch-list"></div>
+      </div>
+
+      <div class="answer-section" id="ans-nomcp">
+        <div class="section-title">Travel Plan</div>
+        <div class="answer-body" id="ans-nomcp-body"></div>
+      </div>
+
+      <div class="stats-bar" id="stats-nomcp">
+        <div><span class="lbl" style="color:#475569;">Context dumped: </span><span class="sv highlight" id="s-nomcp-chars">–</span></div>
+        <div><span class="lbl" style="color:#475569;">Input tokens: </span><span class="sv highlight" id="s-nomcp-in">–</span></div>
+        <div><span class="lbl" style="color:#475569;">Output tokens: </span><span class="sv" id="s-nomcp-out">–</span></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- Tool call log -->
-<div class="card" id="toolLog">
-  <h3>🔧 MCP Tool Calls (live)</h3>
-  <div id="toolItems"></div>
-</div>
-
-<!-- Answer -->
-<div class="card" id="answerCard">
-  <h3>🗺️ Your Travel Plan</h3>
-  <div id="answerContent"></div>
-  <div id="statsBar">
-    <div class="stat">Tool calls: <span id="statTools">-</span></div>
-    <div class="stat">Input tokens: <span id="statIn">-</span></div>
-    <div class="stat">Output tokens: <span id="statOut">-</span></div>
+<!-- Comparison summary (shown when both modes run) -->
+<div id="summary-bar">
+  <div style="width:100%">
+    <h3>📊 Side-by-side comparison</h3>
+    <div class="cmp-row" id="cmp-row"></div>
   </div>
 </div>
-
-<!-- Error -->
-<div id="errorBox"></div>
 
 <script>
-  function setPrompt(text) {
-    document.getElementById('prompt').value = text;
+  let mcpResult   = null;
+  let nomcpResult = null;
+
+  function setPrompt(t) { document.getElementById('prompt').value = t; }
+
+  function getMode() {
+    return document.querySelector('input[name=mode]:checked').value;
   }
 
-  function setStatus(text) {
-    document.getElementById('statusText').textContent = text;
+  function showSpinner(id, show) {
+    document.getElementById(id).style.display = show ? 'flex' : 'none';
   }
 
-  function addToolCall(name, input) {
-    const div = document.createElement('div');
-    div.className = 'tool-item';
-    div.innerHTML = `<div class="tool-name">${name}</div>
-                     <div class="tool-input">${JSON.stringify(input)}</div>`;
-    document.getElementById('toolItems').appendChild(div);
+  function showEl(id, show, display) {
+    document.getElementById(id).style.display = show ? (display || 'block') : 'none';
   }
 
-  async function planJourney() {
+  function renderMCPResult(data) {
+    const toolList = document.getElementById('tool-list');
+    toolList.innerHTML = '';
+    if (data.tool_calls && data.tool_calls.length) {
+      showEl('tools-mcp', true);
+      data.tool_calls.forEach(tc => {
+        const d = document.createElement('div');
+        d.className = 'tool-item';
+        d.innerHTML = `<div class="tool-name">${tc.name}</div>
+                       <div class="tool-args">${JSON.stringify(tc.input)}</div>`;
+        toolList.appendChild(d);
+      });
+    }
+    showEl('ans-mcp', true);
+    document.getElementById('ans-mcp-body').innerHTML = marked.parse(data.answer || '');
+    showEl('stats-mcp', true, 'flex');
+    document.getElementById('s-mcp-tools').textContent = data.tool_calls?.length ?? '–';
+    document.getElementById('s-mcp-in').textContent    = (data.input_tokens ?? 0).toLocaleString();
+    document.getElementById('s-mcp-out').textContent   = (data.output_tokens ?? 0).toLocaleString();
+  }
+
+  function renderNoMCPResult(data) {
+    const fetchList = document.getElementById('fetch-list');
+    fetchList.innerHTML = '';
+    if (data.steps && data.steps.length) {
+      showEl('fetch-section', true);
+      data.steps.forEach(s => {
+        const d = document.createElement('div');
+        d.className = 'fetch-item';
+        d.innerHTML = `<div class="fetch-city">${s.city}</div>
+                       <div class="fetch-ops">fetched: ${s.fetched.join(', ')}</div>`;
+        fetchList.appendChild(d);
+      });
+    }
+    if (data.context_chars) {
+      showEl('dump-warn', true);
+      document.getElementById('dump-chars').textContent = data.context_chars.toLocaleString();
+    }
+    showEl('ans-nomcp', true);
+    document.getElementById('ans-nomcp-body').innerHTML = marked.parse(data.answer || '');
+    showEl('stats-nomcp', true, 'flex');
+    document.getElementById('s-nomcp-chars').textContent = (data.context_chars ?? 0).toLocaleString() + ' chars';
+    document.getElementById('s-nomcp-in').textContent    = (data.input_tokens ?? 0).toLocaleString();
+    document.getElementById('s-nomcp-out').textContent   = (data.output_tokens ?? 0).toLocaleString();
+  }
+
+  function renderComparison() {
+    if (!mcpResult || !nomcpResult) return;
+    showEl('summary-bar', true, 'flex');
+    const mcpIn    = mcpResult.input_tokens  ?? 0;
+    const nomcpIn  = nomcpResult.input_tokens ?? 0;
+    const mcpTools = mcpResult.tool_calls?.length ?? 0;
+    const saving   = nomcpIn > mcpIn ? Math.round((1 - mcpIn / nomcpIn) * 100) : 0;
+    document.getElementById('cmp-row').innerHTML = `
+      <div class="cmp-item">
+        <span class="lbl">Input tokens — </span>
+        <span class="cmp-mcp">${mcpIn.toLocaleString()} (MCP)</span>
+        &nbsp;vs&nbsp;
+        <span class="cmp-nomcp">${nomcpIn.toLocaleString()} (no-MCP)</span>
+        ${saving > 0 ? `<span class="winner">↓ ${saving}% fewer tokens with MCP</span>` : ''}
+      </div>
+      <div class="cmp-item">
+        <span class="lbl">Context size — </span>
+        <span class="cmp-mcp">on-demand (MCP)</span>
+        &nbsp;vs&nbsp;
+        <span class="cmp-nomcp">${(nomcpResult.context_chars ?? 0).toLocaleString()} chars pre-loaded (no-MCP)</span>
+      </div>
+      <div class="cmp-item">
+        <span class="lbl">Fetches — </span>
+        <span class="cmp-mcp">${mcpTools} targeted tool calls (MCP)</span>
+        &nbsp;vs&nbsp;
+        <span class="cmp-nomcp">${nomcpResult.steps?.length ?? 0} cities × 4 endpoints hardcoded (no-MCP)</span>
+      </div>`;
+  }
+
+  async function fetchPlan(prompt, mode) {
+    const resp = await fetch('/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, mode }),
+    });
+    return resp.json();
+  }
+
+  async function run() {
     const prompt = document.getElementById('prompt').value.trim();
     if (!prompt) return;
 
-    // Reset UI
-    document.getElementById('planBtn').disabled = true;
-    document.getElementById('toolItems').innerHTML = '';
-    document.getElementById('answerContent').innerHTML = '';
-    document.getElementById('errorBox').style.display = 'none';
-    document.getElementById('answerCard').style.display = 'none';
-    document.getElementById('statsBar').style.display = 'none';
-    document.getElementById('toolLog').style.display = 'none';
-    document.getElementById('status').style.display = 'flex';
-    setStatus('Connecting to MCP server and calling Gemini... (this may take 15-30s)');
+    const mode = getMode();
+    document.getElementById('runBtn').disabled = true;
 
-    try {
-      const resp = await fetch('/plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
+    // Reset state
+    mcpResult = null; nomcpResult = null;
+    ['tools-mcp','ans-mcp','stats-mcp','fetch-section','ans-nomcp',
+     'stats-nomcp','dump-warn','summary-bar'].forEach(id => showEl(id, false));
+    document.getElementById('tool-list').innerHTML  = '';
+    document.getElementById('fetch-list').innerHTML = '';
+    ['err-mcp','err-nomcp'].forEach(id => {
+      const el = document.getElementById(id);
+      el.style.display = 'none'; el.textContent = '';
+    });
 
-      const data = await resp.json();
+    const showMCP   = mode === 'mcp'    || mode === 'both';
+    const showNOMCP = mode === 'no-mcp' || mode === 'both';
 
-      if (data.error) {
-        document.getElementById('errorBox').textContent = 'Error: ' + data.error;
-        document.getElementById('errorBox').style.display = 'block';
-        document.getElementById('status').style.display = 'none';
-        return;
-      }
+    showEl('panel-mcp',   showMCP,   'flex');
+    showEl('panel-nomcp', showNOMCP, 'flex');
+    document.getElementById('grid').className =
+      'compare-grid' + (mode === 'both' ? '' : ' single');
 
-      // Show tool calls
-      if (data.tool_calls && data.tool_calls.length > 0) {
-        document.getElementById('toolLog').style.display = 'block';
-        for (const tc of data.tool_calls) {
-          addToolCall(tc.name, tc.input);
-        }
-      }
+    const promises = [];
 
-      // Show answer
-      document.getElementById('status').style.display = 'none';
-      document.getElementById('answerCard').style.display = 'block';
-      document.getElementById('answerContent').innerHTML = marked.parse(data.answer);
-
-      document.getElementById('statsBar').style.display = 'flex';
-      document.getElementById('statTools').textContent = data.tool_calls?.length ?? '-';
-      document.getElementById('statIn').textContent = (data.input_tokens ?? 0).toLocaleString();
-      document.getElementById('statOut').textContent = (data.output_tokens ?? 0).toLocaleString();
-
-    } catch (err) {
-      document.getElementById('errorBox').textContent = 'Request failed: ' + err.message;
-      document.getElementById('errorBox').style.display = 'block';
-      document.getElementById('status').style.display = 'none';
+    if (showMCP) {
+      showSpinner('spin-mcp', true);
+      promises.push(
+        fetchPlan(prompt, 'mcp')
+          .then(data => {
+            showSpinner('spin-mcp', false);
+            if (data.error) {
+              document.getElementById('err-mcp').textContent = 'Error: ' + data.error;
+              showEl('err-mcp', true);
+            } else {
+              mcpResult = data;
+              renderMCPResult(data);
+              renderComparison();
+            }
+          })
+          .catch(e => {
+            showSpinner('spin-mcp', false);
+            document.getElementById('err-mcp').textContent = 'Request failed: ' + e.message;
+            showEl('err-mcp', true);
+          })
+      );
     }
 
-    document.getElementById('planBtn').disabled = false;
+    if (showNOMCP) {
+      showSpinner('spin-nomcp', true);
+      promises.push(
+        fetchPlan(prompt, 'no-mcp')
+          .then(data => {
+            showSpinner('spin-nomcp', false);
+            if (data.error) {
+              document.getElementById('err-nomcp').textContent = 'Error: ' + data.error;
+              showEl('err-nomcp', true);
+            } else {
+              nomcpResult = data;
+              renderNoMCPResult(data);
+              renderComparison();
+            }
+          })
+          .catch(e => {
+            showSpinner('spin-nomcp', false);
+            document.getElementById('err-nomcp').textContent = 'Request failed: ' + e.message;
+            showEl('err-nomcp', true);
+          })
+      );
+    }
+
+    await Promise.all(promises);
+    document.getElementById('runBtn').disabled = false;
   }
 
-  // Allow Ctrl+Enter to submit
   document.getElementById('prompt').addEventListener('keydown', e => {
-    if (e.ctrlKey && e.key === 'Enter') planJourney();
+    if (e.ctrlKey && e.key === 'Enter') run();
   });
 </script>
 </body>
