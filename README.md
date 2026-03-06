@@ -356,6 +356,36 @@ python mcp_client.py
 | **Separation of concerns** | None — logic mixed in app | Clean — server owns data, client owns conversation |
 | **LLM autonomy** | None — LLM is passive | Full — LLM reasons about what it needs |
 
+### The Two-Layer Benefit of MCP
+
+MCP delivers value at two distinct levels:
+
+**Layer 1 — Standardised integration (the "plumbing")**
+
+MCP gives you a universal connector. Instead of writing custom glue code for every API in every app, you write the integration once as an MCP server. Any MCP-compatible host (your Flask app, VS Code Copilot, Claude Desktop, etc.) can plug into it with zero extra code. This is the M+N solution to the M×N integration problem described above.
+
+**Layer 2 — LLM-driven efficiency (the "intelligence")**
+
+This is the deeper insight. Because the LLM is the one *calling* the tools, it brings **reasoning** to the data-fetching process. The LLM doesn't just *use* the tools — it decides which tools to call, in what order, with what arguments, and whether to call them at all:
+
+| Situation | Without MCP | With MCP |
+|---|---|---|
+| User asks only about weather | Fetches weather + Wikipedia + currency anyway | Calls only `get_weather()` |
+| City already uses EUR | Still fetches currency rate | Skips `get_currency_rate()` — unnecessary |
+| User asks a follow-up question | Re-fetches everything again | Calls only the missing piece |
+| LLM needs coords before weather | Developer must hard-code that order | LLM sequences the calls itself |
+
+The combined effect:
+
+```
+MCP  =  standard interface  +  LLM as the decision-maker
+      └─ any app can use it   └─ no wasted API calls, no wasted tokens
+```
+
+Without MCP, the **developer** is the decision-maker (rigid, hardcoded, always fetches everything). With MCP, the **LLM** is the decision-maker (flexible, context-aware, fetches only what it needs). The protocol is what makes that hand-off safe and standardised.
+
+---
+
 ### When to Use MCP
 
 MCP shines when:
