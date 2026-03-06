@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MCP Travel Journey Planner</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header p {
+      color: #94a3b8;
+      margin-top: 0.4rem;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 820px;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Input area ── */
+    .input-row {
+      display: flex;
+      gap: 0.75rem;
+    }
+    textarea {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      padding: 0.75rem 1rem;
+      resize: vertical;
+      min-height: 90px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: #38bdf8; }
+
+    button#planBtn {
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      border: none;
+      border-radius: 8px;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      padding: 0 1.4rem;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    button#planBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .preset-btn {
+      background: #0f172a;
+      border: 1px solid #475569;
+      border-radius: 20px;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      padding: 0.3rem 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preset-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+
+    /* ── Status / spinner ── */
+    #status {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid #334155;
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Tool call log ── */
+    #toolLog { display: none; }
+    #toolLog h3 {
+      font-size: 0.85rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+    .tool-item {
+      background: #0f172a;
+      border-left: 3px solid #818cf8;
+      border-radius: 6px;
+      padding: 0.6rem 0.9rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.82rem;
+      animation: fadeIn 0.3s ease;
+    }
+    .tool-name { color: #818cf8; font-weight: 600; }
+    .tool-input { color: #94a3b8; margin-top: 0.2rem; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
+
+    /* ── Answer ── */
+    #answerCard { display: none; }
+    #answerCard h3 {
+      font-size: 0.85rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+    #answerContent {
+      line-height: 1.75;
+      color: #cbd5e1;
+    }
+    #answerContent h1, #answerContent h2, #answerContent h3 {
+      color: #e2e8f0;
+      margin: 1.2rem 0 0.4rem;
+    }
+    #answerContent strong { color: #f1f5f9; }
+    #answerContent ul, #answerContent ol { padding-left: 1.4rem; margin: 0.5rem 0; }
+    #answerContent li { margin-bottom: 0.3rem; }
+    #answerContent p { margin-bottom: 0.75rem; }
+    #answerContent code {
+      background: #0f172a;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85em;
+      color: #38bdf8;
+    }
+    #answerContent hr { border-color: #334155; margin: 1rem 0; }
+
+    /* ── Stats bar ── */
+    #statsBar {
+      display: none;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-top: 1.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #334155;
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+    .stat span { color: #94a3b8; font-weight: 600; }
+
+    /* ── Error ── */
+    #errorBox {
+      display: none;
+      background: #450a0a;
+      border: 1px solid #7f1d1d;
+      border-radius: 8px;
+      color: #fca5a5;
+      padding: 1rem;
+      font-size: 0.88rem;
+      width: 100%;
+      max-width: 820px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>✈️ MCP Travel Journey Planner</h1>
+  <p>Powered by Gemini + MCP tools (weather · places · currency)</p>
+</header>
+
+<!-- Input card -->
+<div class="card">
+  <div class="input-row">
+    <textarea id="prompt" placeholder="e.g. I'm flying from London to Tokyo, stopping in Dubai. What's the weather, what should I know, and what's the currency?"></textarea>
+    <button id="planBtn" onclick="planJourney()">Plan ✈️</button>
+  </div>
+  <div class="presets">
+    <span style="color:#64748b;font-size:0.8rem;align-self:center;">Try:</span>
+    <button class="preset-btn" onclick="setPrompt('Paris → Rome → Athens → Istanbul: weather, places, currency vs EUR')">Paris→Rome→Athens→Istanbul</button>
+    <button class="preset-btn" onclick="setPrompt('London to Tokyo stopping in Dubai: weather, local info, and currency tips')">London→Dubai→Tokyo</button>
+    <button class="preset-btn" onclick="setPrompt('New York to Buenos Aires via Miami: what to expect weather-wise, cultural highlights, and currency')">NYC→Miami→Buenos Aires</button>
+    <button class="preset-btn" onclick="setPrompt('Amsterdam to Bangkok via Doha: weather forecast, interesting facts, currency rates')">Amsterdam→Doha→Bangkok</button>
+  </div>
+</div>
+
+<!-- Status -->
+<div id="status">
+  <div class="spinner"></div>
+  <span id="statusText">Connecting to MCP server...</span>
+</div>
+
+<!-- Tool call log -->
+<div class="card" id="toolLog">
+  <h3>🔧 MCP Tool Calls (live)</h3>
+  <div id="toolItems"></div>
+</div>
+
+<!-- Answer -->
+<div class="card" id="answerCard">
+  <h3>🗺️ Your Travel Plan</h3>
+  <div id="answerContent"></div>
+  <div id="statsBar">
+    <div class="stat">Tool calls: <span id="statTools">-</span></div>
+    <div class="stat">Input tokens: <span id="statIn">-</span></div>
+    <div class="stat">Output tokens: <span id="statOut">-</span></div>
+  </div>
+</div>
+
+<!-- Error -->
+<div id="errorBox"></div>
+
+<script>
+  function setPrompt(text) {
+    document.getElementById('prompt').value = text;
+  }
+
+  function setStatus(text) {
+    document.getElementById('statusText').textContent = text;
+  }
+
+  function addToolCall(name, input) {
+    const div = document.createElement('div');
+    div.className = 'tool-item';
+    div.innerHTML = `<div class="tool-name">${name}</div>
+                     <div class="tool-input">${JSON.stringify(input)}</div>`;
+    document.getElementById('toolItems').appendChild(div);
+  }
+
+  async function planJourney() {
+    const prompt = document.getElementById('prompt').value.trim();
+    if (!prompt) return;
+
+    // Reset UI
+    document.getElementById('planBtn').disabled = true;
+    document.getElementById('toolItems').innerHTML = '';
+    document.getElementById('answerContent').innerHTML = '';
+    document.getElementById('errorBox').style.display = 'none';
+    document.getElementById('answerCard').style.display = 'none';
+    document.getElementById('statsBar').style.display = 'none';
+    document.getElementById('toolLog').style.display = 'none';
+    document.getElementById('status').style.display = 'flex';
+    setStatus('Connecting to MCP server and calling Gemini... (this may take 15-30s)');
+
+    try {
+      const resp = await fetch('/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+
+      const data = await resp.json();
+
+      if (data.error) {
+        document.getElementById('errorBox').textContent = 'Error: ' + data.error;
+        document.getElementById('errorBox').style.display = 'block';
+        document.getElementById('status').style.display = 'none';
+        return;
+      }
+
+      // Show tool calls
+      if (data.tool_calls && data.tool_calls.length > 0) {
+        document.getElementById('toolLog').style.display = 'block';
+        for (const tc of data.tool_calls) {
+          addToolCall(tc.name, tc.input);
+        }
+      }
+
+      // Show answer
+      document.getElementById('status').style.display = 'none';
+      document.getElementById('answerCard').style.display = 'block';
+      document.getElementById('answerContent').innerHTML = marked.parse(data.answer);
+
+      document.getElementById('statsBar').style.display = 'flex';
+      document.getElementById('statTools').textContent = data.tool_calls?.length ?? '-';
+      document.getElementById('statIn').textContent = (data.input_tokens ?? 0).toLocaleString();
+      document.getElementById('statOut').textContent = (data.output_tokens ?? 0).toLocaleString();
+
+    } catch (err) {
+      document.getElementById('errorBox').textContent = 'Request failed: ' + err.message;
+      document.getElementById('errorBox').style.display = 'block';
+      document.getElementById('status').style.display = 'none';
+    }
+
+    document.getElementById('planBtn').disabled = false;
+  }
+
+  // Allow Ctrl+Enter to submit
+  document.getElementById('prompt').addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key === 'Enter') planJourney();
+  });
+</script>
+</body>
+</html>
